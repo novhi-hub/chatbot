@@ -236,145 +236,153 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-200">
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-      <button
-        onClick={createNewChat}
-        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-      >
-        New Chat
-      </button>
-      <div className="flex items-center gap-2">
-        <ThemeToggle theme={theme} onToggle={toggleTheme} />
-        <button
-        onClick={() => document.querySelector('.chat-history')?.classList.toggle('hidden')}
-        className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-        >
-        Menu
-        </button>
-      </div>
-      </div>
-
-      <div className="chat-history hidden md:block">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-200">
       <ChatHistory
         chats={chats}
         currentChatId={currentChatId}
         onSelectChat={handleSelectChat}
         onNewChat={createNewChat}
       />
-      </div>
 
-      <div className="flex-1 flex flex-col h-[calc(100vh-64px)] md:h-screen">
-      <header className="hidden md:flex w-100 bg-transparent">
-        <div className="w-full flex justify-end px-4 py-3">
+      <div className="flex-1 flex flex-col">
+        <header className="flex w-100 bg-transparent">
+          <div className="w-full flex justify-end px-4 py-3">
+          
         <div className="flex items-center gap-4">
           {/* Model Dropdown */}
           <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600"
-          >
-            {selectedModel}
-            <ChevronDown className="w-4 h-4" />
-          </button>
+            <button
+          onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200"
+            >
+          {selectedModel}
+                  <ChevronDown className="w-4 h-4" />
+                </button>
 
-          {isModelDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-700 z-10">
-            <div className="py-1" role="menu">
-              {models.map((model) => (
-              <button
-                key={model.name}
-                onClick={() => {
-                setSelectedModel(model.name);
-                setIsModelDropdownOpen(false);
-                }}
-                className={`block w-full text-left px-4 py-2 text-sm ${
-                selectedModel === model.name
-                  ? 'bg-gray-100 dark:bg-gray-600'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
-                }`}
-              >
-                {model.name}
-              </button>
+                {isModelDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 dark:ring-gray-600 z-10 transition-opacity duration-200">
+                    <div className="py-1" role="menu">
+                      {models.map((model) => (
+                        <button
+                          key={model.name}
+                          onClick={() => {
+                            setSelectedModel(model.name);
+                            setIsModelDropdownOpen(false);
+                          }}
+                          className={`block w-full text-left px-4 py-2 text-sm ${selectedModel === model.name
+                              ? 'bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100'
+                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                            } transition-colors duration-200`}
+                          role="menuitem"
+                        >
+                          {model.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* User Menu and Theme Toggle */}
+              <div className="relative flex flex-1 gap-2 align-middle" ref={userMenuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200"
+                >
+                  <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                </button>
+                <ThemeToggle
+                  theme={theme}
+                  onToggle={toggleTheme}
+                />
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 dark:ring-gray-600 z-10 transition-opacity duration-200">
+                    <div className="py-1" role="menu">
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          setIsSettingsOpen(true);
+                        }}
+                        className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+                        role="menuitem"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Model Settings
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Chat Area */}
+        <main className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
+          {state.messages.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 transition-colors duration-200">
+              <p>Start a conversation with the AI...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {state.messages.map((message, index) => (
+                <MessageItem key={index} message={message} />
               ))}
-            </div>
+              {state.isLoading && (
+                <div className="max-w-3xl mx-auto px-4 py-8">
+                  <div className="animate-pulse flex gap-6">
+                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full transition-colors duration-200"></div>
+                    <div className="flex-1 space-y-3">
+                      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded transition-colors duration-200"></div>
+                      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-3/4 transition-colors duration-200"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
           )}
-          </div>
+        </main>
 
-          {/* User Menu */}
-          <div className="relative" ref={userMenuRef}>
-          <button
-            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600"
-          >
-            <User className="w-5 h-5" />
-          </button>
-          {isUserMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 z-10">
-            <div className="py-1">
+        {/* Footer Input Area */}
+        <footer className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-colors duration-200">
+          <div className="max-w-3xl mx-auto p-4">
+            <form onSubmit={handleSubmit} className="flex gap-4">
+              <div className="flex-1 min-w-0">
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type your message... (Shift + Enter for new line)"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden min-h-[44px] max-h-[200px] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
+                  disabled={state.isLoading}
+                  rows={1}
+                  style={{ lineHeight: '1.5' }}
+                />
+                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">
+                  Press Shift + Enter for new line, Enter to send
+                </div>
+              </div>
               <button
-              onClick={() => {
-                setIsUserMenuOpen(false);
-                setIsSettingsOpen(true);
-              }}
-              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                type="submit"
+                disabled={state.isLoading}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed self-start transition-colors duration-200 dark:bg-blue-700 dark:hover:bg-blue-800 dark:focus:ring-offset-gray-800"
               >
-              <Settings className="w-4 h-4" />
-              Settings
+                <Send className="w-4 h-4" />
               </button>
-            </div>
-            </div>
-          )}
+            </form>
           </div>
-        </div>
-        </div>
-      </header>
+        </footer>
 
-      <main className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-4">
-        {state.messages.length === 0 ? (
-        <div className="h-full flex items-center justify-center text-gray-400">
-          <p>Start a conversation...</p>
-        </div>
-        ) : (
-        <div className="space-y-4 max-w-3xl mx-auto">
-          {state.messages.map((message, index) => (
-          <MessageItem key={index} message={message} />
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+        {/* Settings Modal */}
+        {isSettingsOpen && (
+          <ModelSettings
+            models={models}
+            onClose={() => setIsSettingsOpen(false)}
+            onModelChange={fetchModels}
+          />
         )}
-      </main>
-
-      <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <form onSubmit={handleSubmit} className="flex gap-2 max-w-3xl mx-auto">
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your message..."
-          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 min-h-[44px] max-h-[200px] bg-white dark:bg-gray-700"
-          disabled={state.isLoading}
-          rows={1}
-        />
-        <button
-          type="submit"
-          disabled={state.isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          <Send className="w-5 h-5" />
-        </button>
-        </form>
-      </footer>
-
-      {isSettingsOpen && (
-        <ModelSettings
-        models={models}
-        onClose={() => setIsSettingsOpen(false)}
-        onModelChange={fetchModels}
-        />
-      )}
       </div>
     </div>
   );
