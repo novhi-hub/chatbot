@@ -4,6 +4,7 @@ import { MessageItem } from './components/MessageItem';
 import { ModelSettings } from './components/ModelSettings';
 import { ChatHistory } from './components/ChatHistory';
 import type { Message, ChatState, OllamaModel, Chat } from './types';
+import ThemeToggle from './components/ThemeToggle';
 
 function App() {
   const [chats, setChats] = useState<Chat[]>(() => {
@@ -26,15 +27,30 @@ function App() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme');
+      return savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+    return 'light';
+  });
+  
   // Auto-resize textarea as content grows
   useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [input]);
-
+  }, [input,theme]);
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+  };
   // Save chats to localStorage
   useEffect(() => {
     localStorage.setItem('chats', JSON.stringify(chats));
@@ -220,144 +236,145 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-200">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <button
+        onClick={createNewChat}
+        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+      >
+        New Chat
+      </button>
+      <div className="flex items-center gap-2">
+        <ThemeToggle theme={theme} onToggle={toggleTheme} />
+        <button
+        onClick={() => document.querySelector('.chat-history')?.classList.toggle('hidden')}
+        className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+        Menu
+        </button>
+      </div>
+      </div>
+
+      <div className="chat-history hidden md:block">
       <ChatHistory
         chats={chats}
         currentChatId={currentChatId}
         onSelectChat={handleSelectChat}
         onNewChat={createNewChat}
       />
-      
-      <div className="flex-1 flex flex-col">
-        <header className="flex-shrink-0 border-b border-gray-200 bg-white">
-          <div className="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 className="text-xl font-semibold text-gray-800">Ollama Chat</h1>
-            <div className="flex items-center gap-4">
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  {selectedModel}
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-                {isModelDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                    <div className="py-1" role="menu">
-                      {models.map((model) => (
-                        <button
-                          key={model.name}
-                          onClick={() => {
-                            setSelectedModel(model.name);
-                            setIsModelDropdownOpen(false);
-                          }}
-                          className={`block w-full text-left px-4 py-2 text-sm ${
-                            selectedModel === model.name
-                              ? 'bg-gray-100 text-gray-900'
-                              : 'text-gray-700 hover:bg-gray-50'
-                          }`}
-                          role="menuitem"
-                        >
-                          {model.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <User className="w-5 h-5 text-gray-600" />
-                </button>
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                    <div className="py-1" role="menu">
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          setIsSettingsOpen(true);
-                        }}
-                        className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        role="menuitem"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Model Settings
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+      </div>
 
-        <main className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
-          {state.messages.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-gray-400">
-              <p>Start a conversation with the AI...</p>
-            </div>
-          ) : (
-            <div>
-              {state.messages.map((message, index) => (
-                <MessageItem key={index} message={message} />
+      <div className="flex-1 flex flex-col h-[calc(100vh-64px)] md:h-screen">
+      <header className="hidden md:flex w-100 bg-transparent">
+        <div className="w-full flex justify-end px-4 py-3">
+        <div className="flex items-center gap-4">
+          {/* Model Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            {selectedModel}
+            <ChevronDown className="w-4 h-4" />
+          </button>
+
+          {isModelDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-700 z-10">
+            <div className="py-1" role="menu">
+              {models.map((model) => (
+              <button
+                key={model.name}
+                onClick={() => {
+                setSelectedModel(model.name);
+                setIsModelDropdownOpen(false);
+                }}
+                className={`block w-full text-left px-4 py-2 text-sm ${
+                selectedModel === model.name
+                  ? 'bg-gray-100 dark:bg-gray-600'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                }`}
+              >
+                {model.name}
+              </button>
               ))}
-              {state.isLoading && (
-                <div className="max-w-3xl mx-auto px-4 py-8">
-                  <div className="animate-pulse flex gap-6">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                    <div className="flex-1 space-y-3">
-                      <div className="h-2 bg-gray-200 rounded"></div>
-                      <div className="h-2 bg-gray-200 rounded w-3/4"></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+            </div>
             </div>
           )}
-        </main>
-
-        <footer className="flex-shrink-0 border-t border-gray-200 bg-white">
-          <div className="max-w-3xl mx-auto p-4">
-            <form onSubmit={handleSubmit} className="flex gap-4">
-              <div className="flex-1 min-w-0">
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type your message... (Shift + Enter for new line)"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden min-h-[44px] max-h-[200px]"
-                  disabled={state.isLoading}
-                  rows={1}
-                  style={{ lineHeight: '1.5' }}
-                />
-                <div className="mt-1 text-xs text-gray-500">
-                  Press Shift + Enter for new line, Enter to send
-                </div>
-              </div>
-              <button
-                type="submit"
-                disabled={state.isLoading}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed self-start"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
           </div>
-        </footer>
 
-        {isSettingsOpen && (
-          <ModelSettings
-            models={models}
-            onClose={() => setIsSettingsOpen(false)}
-            onModelChange={fetchModels}
-          />
+          {/* User Menu */}
+          <div className="relative" ref={userMenuRef}>
+          <button
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600"
+          >
+            <User className="w-5 h-5" />
+          </button>
+          {isUserMenuOpen && (
+            <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 z-10">
+            <div className="py-1">
+              <button
+              onClick={() => {
+                setIsUserMenuOpen(false);
+                setIsSettingsOpen(true);
+              }}
+              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+              >
+              <Settings className="w-4 h-4" />
+              Settings
+              </button>
+            </div>
+            </div>
+          )}
+          </div>
+        </div>
+        </div>
+      </header>
+
+      <main className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-4">
+        {state.messages.length === 0 ? (
+        <div className="h-full flex items-center justify-center text-gray-400">
+          <p>Start a conversation...</p>
+        </div>
+        ) : (
+        <div className="space-y-4 max-w-3xl mx-auto">
+          {state.messages.map((message, index) => (
+          <MessageItem key={index} message={message} />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
         )}
+      </main>
+
+      <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <form onSubmit={handleSubmit} className="flex gap-2 max-w-3xl mx-auto">
+        <textarea
+          ref={textareaRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type your message..."
+          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 min-h-[44px] max-h-[200px] bg-white dark:bg-gray-700"
+          disabled={state.isLoading}
+          rows={1}
+        />
+        <button
+          type="submit"
+          disabled={state.isLoading}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          <Send className="w-5 h-5" />
+        </button>
+        </form>
+      </footer>
+
+      {isSettingsOpen && (
+        <ModelSettings
+        models={models}
+        onClose={() => setIsSettingsOpen(false)}
+        onModelChange={fetchModels}
+        />
+      )}
       </div>
     </div>
   );
